@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --primary: #b2a59b;
+    --secondary: #ded0b6;
+    --accent: #be7b72;
+  }
+
+  body {
+    @apply bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-100;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-serif;
+  }
+}
+
+@layer components {
+  .container-narrow {
+    @apply max-w-7xl mx-auto px-5 sm:px-8;
+  }
+  .section-padding {
+    @apply py-16 md:py-24;
+  }
+}
