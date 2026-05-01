@@ -97,7 +97,16 @@
   "inactiveExplanation": "Üyeliğiniz pasif durumda. Daha fazla bilgi için bizimle iletişime geçin.",
   "reason": "Gerekçe",
   "refresh": "Yenile",
+  "recurringEvent": "Tekrarlayan",
+"selectOccurrence": "Tarih seç",
+"chooseDate": "Bir tarih seçin",
+"selectOccurrenceFirst": "Kayıt olmak için bir tarih seçin",
+"occurrenceDate": "Tarih",
   "invalidEmail": "Geçersiz e-posta adresi",
 "reasonPlaceholder": "Üyeliğinizi neden iptal etmek istiyorsunuz?",
-"cancelMembershipError": "İptal talebi gönderilemedi. Zaten bekleyen bir talebiniz olabilir."
+"cancelMembershipError": "İptal talebi gönderilemedi. Zaten bekleyen bir talebiniz olabilir.",
+"full": "Dolu",
+"registrationConfirmed": "Kayıt onaylandı",
+"registrationConfirmedText": "{title} etkinliğine kaydınız tamamlandı",
+"close": "Kapat"
 }

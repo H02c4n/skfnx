@@ -37,6 +37,7 @@ export default function EventsPage() {
         params.append('date_time__lte', `${filters.year}-12-31`);
       }
       if (filters.price === 'free') params.append('price', '0');
+      if (filters.price === 'paid') params.append('price__gt', '0');
       params.append('page', String(filters.page));
       const res = await api.get(`/events/?${params.toString()}`);
       return res.data as PaginatedResponse<Event>;

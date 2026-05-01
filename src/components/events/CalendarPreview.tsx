@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { format } from 'date-fns';
 import { sv, enUS, tr } from 'date-fns/locale';
 import Link from 'next/link';
+import { ClockIcon, CreditCardIcon } from '../ui/Icons';
 
 // Map app locale to date-fns locale
 const getDateFnsLocale = (locale: string) => {
@@ -21,7 +22,7 @@ export default function CalendarPreview() {
   const t = useTranslations();
   const locale = useLocale();
   const dateLocale = getDateFnsLocale(locale);
-  
+
   const { data, isLoading } = useQuery({
     queryKey: ['calendarEvents', locale],
     queryFn: async () => {
@@ -53,7 +54,18 @@ export default function CalendarPreview() {
                     <Link href={`/events/${ev.slug}`} className="hover:text-accent-300">
                       {title}
                     </Link>
-                    <span className="text-sm text-gray-500">{ev.time} • {ev.price}</span>
+                    <span className="flex items-center gap-3 text-sm text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <ClockIcon />
+                        {ev.time}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <CreditCardIcon />
+                        {ev.price === 0 || ev.price === '0.00' || !ev.price
+                          ? t('free')
+                          : `${ev.price} SEK`}
+                      </span>
+                    </span>
                   </li>
                 );
               })}

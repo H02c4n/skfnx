@@ -2,17 +2,16 @@
 
 import { useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { sv, enUS, tr } from 'date-fns/locale';
 import api from '@/lib/api';
-import { useAuth } from '@/hooks/useAuth';
 import Loader from '@/components/ui/Loader';
-import Modal from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { CalendarIcon, MapPinIcon, UsersIcon, CreditCardIcon } from '@/components/ui/Icons';
+import RegisterButton from '@/components/events/RegisterButton';
 
 type SupportedLocale = 'sv' | 'en' | 'tr';
 
@@ -24,6 +23,14 @@ const getDateLocale = (locale: string) => {
     default: return sv;
   }
 };
+
+interface RecurrenceRule {
+  frequency: string;
+  interval: number;
+  by_day: string;
+  end_date: string | null;
+  count: number | null;
+}
 
 interface EventDetail {
   id: number;
@@ -43,6 +50,13 @@ interface EventDetail {
   };
   is_free: boolean;
   price_display?: string;
+  recurrence_rule?: RecurrenceRule | null;
+}
+
+// Upcoming occurrences from calendar API
+interface Occurrence {
+  date_time: string;
+  occurrence_date: string;
 }
 
 export default function EventDetailPage() {
@@ -51,10 +65,7 @@ export default function EventDetailPage() {
   const t = useTranslations();
   const locale = useLocale();
   const dateLocale = getDateLocale(locale);
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [registerError, setRegisterError] = useState('');
+  const [selectedOccurrence, setSelectedOccurrence] = useState<string>('');
 
   const { data: event, isLoading, error } = useQuery({
     queryKey: ['event', slug],
@@ -65,19 +76,23 @@ export default function EventDetailPage() {
     enabled: !!slug,
   });
 
-  const registerMutation = useMutation({
-    mutationFn: async () => {
-      const res = await api.post(`/events/${slug}/register/`);
-      return res.data;
+  // Fetch upcoming occurrences for recurring events
+  const { data: occurrences } = useQuery({
+    queryKey: ['event-occurrences', slug],
+    queryFn: async () => {
+      const res = await api.get(`/events/calendar/?month=${new Date().toISOString().slice(0, 7)}`);
+      // Filter occurrences for this event
+      const allOccs: Occurrence[] = [];
+      res.data.forEach((day: any) => {
+        day.events?.forEach((e: any) => {
+          if (e.slug === slug) {
+            allOccs.push({ date_time: e.date_time, occurrence_date: e.occurrence_date });
+          }
+        });
+      });
+      return allOccs;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['event', slug] });
-      setIsModalOpen(false);
-      setRegisterError('');
-    },
-    onError: (err: any) => {
-      setRegisterError(err.response?.data?.detail || t('registrationError'));
-    },
+    enabled: !!event?.recurrence_rule,
   });
 
   if (isLoading) return <Loader />;
@@ -97,14 +112,12 @@ export default function EventDetailPage() {
   const isFree = event.is_free || event.price === 0;
   const isFull = event.available_spots === 0;
   const isPast = new Date(event.date_time) < new Date();
+  const isRecurring = !!event.recurrence_rule;
 
-  const handleRegister = () => {
-    if (!user) {
-      window.location.href = '/login';
-      return;
-    }
-    setIsModalOpen(true);
-  };
+  // For recurring: use selected occurrence date, for single: use event date
+  const occurrenceDateToSend = isRecurring
+    ? selectedOccurrence
+    : new Date(event.date_time).toISOString().slice(0, 10);
 
   return (
     <div className="container-narrow py-24">
@@ -120,6 +133,11 @@ export default function EventDetailPage() {
         <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300 mb-2">
           <CalendarIcon />
           <span>{format(new Date(event.date_time), 'PPPPp', { locale: dateLocale })}</span>
+          {isRecurring && (
+            <span className="ml-2 text-xs bg-accent-100 text-accent-700 px-2 py-0.5 rounded-full">
+              {t('recurringEvent')}
+            </span>
+          )}
         </div>
 
         {location && (
@@ -144,38 +162,46 @@ export default function EventDetailPage() {
           )}
         </div>
 
+        {/* Recurring event — occurrence seçimi */}
+        {isRecurring && occurrences && occurrences.length > 0 && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">
+              {t('selectOccurrence')}
+            </label>
+            <select
+              value={selectedOccurrence}
+              onChange={(e) => setSelectedOccurrence(e.target.value)}
+              className="w-full md:w-auto px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-accent-300"
+            >
+              <option value="">{t('chooseDate')}</option>
+              {occurrences.map((occ) => (
+                <option key={occ.occurrence_date} value={occ.occurrence_date}>
+                  {format(new Date(occ.date_time), 'PPPp', { locale: dateLocale })}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div
           className="prose dark:prose-invert max-w-none mb-8"
           dangerouslySetInnerHTML={{ __html: description.replace(/\n/g, '<br/>') }}
         />
 
         {!isPast && (
-          <Button
-            onClick={handleRegister}
-            variant="primary"
-            size="lg"
-            disabled={isFull || registerMutation.isPending}
-            className="w-full md:w-auto"
-          >
-            {isFull ? t('eventFull') : registerMutation.isPending ? t('registering') : t('registerNow')}
-          </Button>
+          <RegisterButton
+            event={event}
+            locale={locale}
+            occurrenceDate={occurrenceDateToSend}
+          />
         )}
         {isPast && <p className="text-gray-500 italic">{t('eventPassed')}</p>}
-      </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <h2 className="text-2xl font-serif mb-4">{t('confirmRegistration')}</h2>
-        <p className="mb-4">{t('confirmRegistrationText', { title })}</p>
-        {registerError && <p className="text-red-500 mb-4">{registerError}</p>}
-        <div className="flex gap-4 justify-end">
-          <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-            {t('cancel')}
-          </Button>
-          <Button variant="primary" onClick={() => registerMutation.mutate()}>
-            {t('confirm')}
-          </Button>
-        </div>
-      </Modal>
+        {/* Recurring için tarih seçilmeden kayıt uyarısı */}
+        {isRecurring && !selectedOccurrence && !isPast && (
+          <p className="mt-2 text-sm text-amber-500">{t('selectOccurrenceFirst')}</p>
+        )}
+      </div>
     </div>
   );
 }

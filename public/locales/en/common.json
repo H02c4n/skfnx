@@ -98,6 +98,15 @@
   "reason": "Reason",
 "reasonPlaceholder": "Why do you want to cancel your membership?",
 "refresh": "Refresh",
+"recurringEvent": "Recurring",
+"selectOccurrence": "Select date",
+"chooseDate": "Choose a date",
+"selectOccurrenceFirst": "Please select a date to register",
+"occurrenceDate": "Date",
 "invalidEmail": "Invalid email address",
-"cancelMembershipError": "Could not send cancellation request. You may already have a pending request."
+"cancelMembershipError": "Could not send cancellation request. You may already have a pending request.",
+"full": "Fully booked",
+"registrationConfirmed": "Registration confirmed",
+"registrationConfirmedText": "You are now registered for {title}",
+"close": "Close"
 }

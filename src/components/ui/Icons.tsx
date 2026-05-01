@@ -125,3 +125,11 @@ export const LoaderIcon = () => (
     <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
   </svg>
 );
+
+
+export const ClockIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <circle cx="12" cy="12" r="10" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" />
+  </svg>
+);

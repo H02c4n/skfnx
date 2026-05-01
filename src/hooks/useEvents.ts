@@ -15,8 +15,8 @@ export const useUpcomingEvents = () => {
     queryFn: async () => {
       const res = await api.get('/events/upcoming/');
       // The API returns paginated response, extract results
-      const data = res.data as PaginatedResponse<Event>;
-      return data.results;
+      //const data = res.data as PaginatedResponse<Event>;
+      return res.data;
     },
   });
 };

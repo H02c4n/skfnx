@@ -1,12 +1,13 @@
 'use client';
 
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { sv, enUS, tr } from 'date-fns/locale';
 import { Event } from '@/types';
 import { CalendarIcon, MapPinIcon } from '../ui/Icons';
+import { CreditCardIcon } from '../ui/Icons';
 
 type SupportedLocale = 'sv' | 'en' | 'tr';
 
@@ -19,9 +20,29 @@ const getDateLocale = (locale: string) => {
   }
 };
 
-export default function EventCard({ event }: { event: Event }) {
+// Hem normal Event hem de EventOccurrence kabul edebilmek için
+interface EventOrOccurrence {
+  id: number;
+  slug: string;
+  image: string | null;
+  date_time: string;
+  price?: number | null;
+  price_display?: string;
+  capacity?: number | null;
+  attendees_count?: number;
+  is_free?: boolean;
+  occurrence_date?: string; // recurring için
+  translations: {
+    sv: { title: string; description?: string; location: string };
+    en: { title: string; description?: string; location: string };
+    tr: { title: string; description?: string; location: string };
+  };
+}
+
+export default function EventCard({ event }: { event: EventOrOccurrence }) {
   const locale = useLocale();
   const dateLocale = getDateLocale(locale);
+  const t = useTranslations();
 
   const lang: SupportedLocale = (locale as SupportedLocale) in event.translations
     ? (locale as SupportedLocale)
@@ -29,7 +50,7 @@ export default function EventCard({ event }: { event: Event }) {
 
   const title = event.translations[lang]?.title || event.slug;
   const location = event.translations[lang]?.location || '';
-  const isFree = event.price === 0 || event.price === null;
+  const isFree = event.is_free || event.price === 0 || event.price === null || Number(event.price) === 0;
 
   return (
     <Link
@@ -51,7 +72,12 @@ export default function EventCard({ event }: { event: Event }) {
         )}
         {isFree && (
           <span className="absolute top-3 right-3 bg-accent-300 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
-            {event.price_display || 'Gratis'}
+            {t('free')}  {/* ← price_display yerine */}
+          </span>
+        )}
+        {event.occurrence_date && (
+          <span className="absolute top-3 left-3 bg-primary-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+            🔁
           </span>
         )}
       </div>
@@ -68,10 +94,13 @@ export default function EventCard({ event }: { event: Event }) {
           </div>
         )}
         <div className="flex justify-between items-center">
-          <span className="font-semibold">
-            {event.price_display || (event.price ? `${event.price} SEK` : 'Gratis')}
+          <span className="font-semibold flex items-center gap-1">
+            <CreditCardIcon />
+            {Number(event.price) === 0 || event.price === null
+              ? t('free')
+              : `${event.price} SEK`}
           </span>
-          <span className="text-sm text-primary-600 group-hover:underline">Läs mer →</span>
+          <span className="text-sm text-primary-600 group-hover:underline">{t('readMore')} →</span>
         </div>
       </div>
     </Link>

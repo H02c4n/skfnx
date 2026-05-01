@@ -16,25 +16,42 @@ const getDateLocale = (locale: string) => {
   }
 };
 
+
+const decodeHtml = (html: string): string => {
+  return html
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&auml;/g, 'ä')
+    .replace(/&ouml;/g, 'ö')
+    .replace(/&aring;/g, 'å')
+    .replace(/&Auml;/g, 'Ä')
+    .replace(/&Ouml;/g, 'Ö')
+    .replace(/&Aring;/g, 'Å')
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(Number(dec)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+};
+
 export default function BlogCard({ post }: { post: any }) {
   const locale = useLocale();
   const dateLocale = getDateLocale(locale);
 
-  // Pick translation for current locale
   const translation = post.translations?.[locale];
   const title = translation?.title || post.slug;
   const content = translation?.content || '';
-  const summary = content.replace(/<[^>]*>/g, '').substring(0, 150) + (content.length > 150 ? '…' : '');
 
-  // Category name (not translated)
+  const rawText = content.replace(/<[^>]*>/g, '');
+  const decoded = decodeHtml(rawText);
+  const summary = decoded.substring(0, 150) + (decoded.length > 150 ? '…' : '');
+
   const categoryName = post.category?.name || '';
-
-  // Image is already absolute URL
   const imageUrl = post.image;
 
   return (
     <Link href={`/blog/${post.slug}`}>
-      <Card className="overflow-hidden hover:shadow-lg transition">
+      <Card className="overflow-hidden hover:shadow-lg transition mb-2">
         <div className="flex flex-col md:flex-row gap-4">
           {imageUrl && (
             <div className="relative w-full md:w-48 h-48 flex-shrink-0">

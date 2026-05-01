@@ -99,6 +99,14 @@
 "reasonPlaceholder": "Varför vill du säga upp ditt medlemskap",
 "cancelMembershipError": "Kunde inte skicka avslutsansökan. Du kan redan ha en pågående begäran.",
 "invalidEmail": "Ogiltig e-postadress",
-"refresh": "Uppdatera"
-
+"refresh": "Uppdatera",
+"recurringEvent": "Återkommande",
+"selectOccurrence": "Välj datum",
+"chooseDate": "Välj ett datum",
+"selectOccurrenceFirst": "Välj ett datum för att registrera dig",
+"occurrenceDate": "Datum",
+"full": "Fullbokat",
+"registrationConfirmed": "Anmälan bekräftad",
+"registrationConfirmedText": "Du är nu anmäld till {title}",
+"close": "Stäng"
 }
