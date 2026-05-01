@@ -62,7 +62,7 @@ export interface Event {
   created_at?: string;
   updated_at?: string;
   attendees_count?: number;
-  available_spots?: number;
+  available_spots?: number | null;
   is_free?: boolean;
   // Translations keyed by language code
   translations: {
